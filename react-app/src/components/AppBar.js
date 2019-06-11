@@ -5,6 +5,7 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
+import * as Constants from "../Constants";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -33,7 +34,7 @@ export default function MenuAppBar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            aB Scissors
+            {Constants.APP_NAME}
           </Typography>
         </Toolbar>
       </AppBar>

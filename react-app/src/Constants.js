@@ -10,7 +10,7 @@ export const COLOR_HEX_DENIM_BLUE = "#1c77c3";
 export const FONT_PRIMARY_COLOR = COLOR_HEX_BLACK;
 
 // NodeControlPanel
-export const CONTROL_PANEL_CARD_HEADER = "DIALOG";
+export const CONTROL_PANEL_CARD_HEADER = "NODE";
 export const CONTROL_PANEL_WIDTH = 275;
 export const CONTROL_PANEL_TEXT_FIELD_WIDTH = 50;
 export const CONTROL_PANEL_MAX_CHILD_NODES = 10;
@@ -24,3 +24,5 @@ export const TREE_NODE_SELECTED_FILL_COLOR = COLOR_HEX_DENIM_BLUE;
 export const TREE_NODE_SELECTED_LINE_COLOR = COLOR_HEX_DENIM_BLUE;
 export const TREE_NODE_VALUE_FONT_SIZE = 18; // TODO: use material-ui Typography
 export const TREE_NODE_VALUE_FONT_WEIGHT = "bold";
+export const TREE_MAX_NUM_NODES = 30;
+export const TREE_NODE_ID_LIMIT = 1000000;

@@ -36,11 +36,15 @@ export default class extends React.Component {
           {
             id: 2,
             value: "",
-            children: [{ id: 3, value: "2" }, { id: 4, value: "6" }]
+            children: [
+              { id: 3, value: "2", children: [] },
+              { id: 4, value: "6", children: [] }
+            ]
           },
           {
             id: 5,
-            value: "1"
+            value: "1",
+            children: []
           },
           {
             id: 6,
@@ -48,11 +52,13 @@ export default class extends React.Component {
             children: [
               {
                 id: 7,
-                value: "4"
+                value: "4",
+                children: []
               },
               {
                 id: 8,
-                value: "3"
+                value: "3",
+                children: []
               }
             ]
           }
@@ -65,26 +71,48 @@ export default class extends React.Component {
           {
             id: 10,
             value: "",
-            children: [{ id: 11, value: "5" }, { id: 12, value: "7" }]
+            children: [
+              { id: 11, value: "5", children: [] },
+              { id: 12, value: "7", children: [] }
+            ]
           },
           {
             id: 13,
-            value: "2"
+            value: "2",
+            children: []
           }
         ]
       }
     ]
   };
 
-  // initIDs = new Set(...Array(14).keys());
+  initIDs = new Set([...Array(14).keys()]);
+  initCount = 14;
 
   state = {
     orientation: "vertical", // vertical || horizontal
     linkType: "line", // diagonal || step || curve || line
     stepPercent: 0.5, // only applicable to step linkType
     data: this.initData,
-    selectedNodeID: this.initData.id
+    selectedNodeID: this.initData.id,
+    nodeIDs: this.initIDs,
+    nodeCount: this.initCount
   };
+
+  getNodeDataObject(data, id) {
+    var result = null;
+    if (data instanceof Array) {
+      for (var i = 0; i < data.length; i++) {
+        result = this.getNodeDataObject(data[i], id);
+        if (result) break;
+      }
+    } else if (data instanceof Object) {
+      console.log("data.id: " + data.id + ", id: " + id);
+      if (data.id === id) return data;
+      else return this.getNodeDataObject(data.children, id);
+    }
+    return result;
+  }
 
   render() {
     const {
@@ -157,7 +185,7 @@ export default class extends React.Component {
           </defs>
           <defs>
             <filter id="shadow">
-              <feDropShadow dx="10" dy="20" stdDeviation="12" />
+              <feDropShadow dx="1" dy="1" stdDeviation="2" />
             </filter>
           </defs>
 
@@ -245,7 +273,7 @@ export default class extends React.Component {
                             r={radius}
                             style={
                               node.data.id === this.state.selectedNodeID
-                                ? { filter: "url(#shadow);" } // does not seem to work
+                                ? { filter: "url(#shadow)" }
                                 : {}
                             }
                             fill={
@@ -261,11 +289,12 @@ export default class extends React.Component {
                             strokeWidth={1}
                             // strokeDasharray={!node.data.children ? "2,2" : "0"}
                             // strokeOpacity={!node.data.children ? 0.6 : 1}
-                            // onClick={() => {
-                            //   node.data.isExpanded = !node.data.isExpanded;
-                            //   console.log(node);
-                            //   this.forceUpdate();
-                            // }}
+                            onClick={() => {
+                              this.setState({ selectedNodeID: node.data.id });
+                              // node.data.isCollapsed = !node.data.isCollapsed;
+                              console.log(node);
+                              this.forceUpdate();
+                            }}
                           />
                         }
                         <text
@@ -290,7 +319,12 @@ export default class extends React.Component {
 
         {/* Node Control Panel */}
         <div style={nodeControlPanelStyle}>
-          <NodeControlPanel />
+          <NodeControlPanel
+            nodeData={this.getNodeDataObject(
+              this.state.data,
+              this.state.selectedNodeID
+            )}
+          />
         </div>
       </div>
     );

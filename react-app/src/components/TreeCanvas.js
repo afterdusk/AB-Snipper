@@ -1,90 +1,89 @@
 import React from "react";
 import { Group } from "@vx/group";
 import { Tree } from "@vx/hierarchy";
-import { LinearGradient } from "@vx/gradient";
 import { hierarchy } from "d3-hierarchy";
 import { pointRadial } from "d3-shape";
-
 import {
   LinkHorizontal,
   LinkVertical,
-  LinkRadial,
   LinkHorizontalStep,
   LinkVerticalStep,
-  LinkRadialStep,
   LinkHorizontalCurve,
   LinkVerticalCurve,
-  LinkRadialCurve,
   LinkHorizontalLine,
-  LinkVerticalLine,
-  LinkRadialLine
+  LinkVerticalLine
 } from "@vx/shape";
+import NodeControlPanel from "./NodeControlPanel";
+import * as Constants from "../Constants";
 
-const data = {
-  name: "T",
-  children: [
-    {
-      name: "A",
-      children: [
-        { name: "A1" },
-        { name: "A2" },
-        { name: "A3" },
-        {
-          name: "C",
-          children: [
-            {
-              name: "C1"
-            },
-            {
-              name: "D",
-              children: [
-                {
-                  name: "D1"
-                },
-                {
-                  name: "D2"
-                },
-                {
-                  name: "D3",
-                  children: [
-                    {
-                      name: "D1"
-                    },
-                    {
-                      name: "D2"
-                    }
-                  ]
-                },
-                {
-                  name: "D4",
-                  children: [
-                    {
-                      name: "D1"
-                    },
-                    {
-                      name: "D2"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    { name: "Z" },
-    {
-      name: "B",
-      children: [{ name: "B1" }, { name: "B2" }, { name: "B3" }]
-    }
-  ]
-};
+/* state vs props: 
+    - props are read-only, passed from parent
+    - state is private, can only be set by component
+  variable vs state:
+    - state, when modified, will call render
+    - variable thus should be used for data that would not affect the DOM */
 
+// TODO: Remove logic allowing for different configs, no need for config to be dynamic
 export default class extends React.Component {
+  initData = {
+    id: 0,
+    value: "",
+    children: [
+      {
+        id: 1,
+        value: "",
+        children: [
+          {
+            id: 2,
+            value: "",
+            children: [{ id: 3, value: "2" }, { id: 4, value: "6" }]
+          },
+          {
+            id: 5,
+            value: "1"
+          },
+          {
+            id: 6,
+            value: "",
+            children: [
+              {
+                id: 7,
+                value: "4"
+              },
+              {
+                id: 8,
+                value: "3"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 9,
+        value: "",
+        children: [
+          {
+            id: 10,
+            value: "",
+            children: [{ id: 11, value: "5" }, { id: 12, value: "7" }]
+          },
+          {
+            id: 13,
+            value: "2"
+          }
+        ]
+      }
+    ]
+  };
+
+  // initIDs = new Set(...Array(14).keys());
+
   state = {
-    layout: "cartesian",
-    orientation: "vertical",
-    linkType: "diagonal"
+    orientation: "vertical", // vertical || horizontal
+    linkType: "line", // diagonal || step || curve || line
+    stepPercent: 0.5, // only applicable to step linkType
+    data: this.initData,
+    selectedNodeID: this.initData.id
   };
 
   render() {
@@ -98,86 +97,120 @@ export default class extends React.Component {
         bottom: 30
       }
     } = this.props;
-
-    const {
-      layout = "vertical", // horizontal
-      orientation = "cartesian", // polar
-      linkType = "diagonal" // step || curve || line
-    } = this.state;
-
+    const nodeControlPanelStyle = {
+      float: "right",
+      margin: "25px"
+    };
     const innerWidth = canvasWidth - margin.left - margin.right;
     const innerHeight = canvasHeight - margin.top - margin.bottom;
+    let origin = { x: 0, y: 0 };
 
-    let origin;
-    let sizeWidth;
-    let sizeHeight;
+    // for ease of reference
+    const { orientation, layout, linkType } = this.state;
 
-    origin = { x: 0, y: 0 };
-    sizeWidth = innerWidth;
-    sizeHeight = innerHeight;
-
+    /* High Level DOM structure
+    TODO: Consider abstracting tree to a separate component, 
+    letting this component act as a controller
+    -> svg
+      -> Group
+        -> Tree
+          -> Group
+            -> Edges 
+            -> Nodes
+              -> Group
+    -> NodeControlPanel
+    */
     return (
       <div>
+        {/* Canvas */}
         <svg width={canvasWidth} height={canvasHeight}>
-          <LinearGradient id="lg" from="#03c0dc" to="#03c0dc" />
-          <rect
-            width={canvasWidth}
-            height={canvasHeight}
-            rx={14}
-            fill="#ffffff"
-          />
+          {/* SVG custom elements */}
+          <defs>
+            <pattern
+              id="smallGrid"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 12 0 L 0 0 0 12"
+                fill="none"
+                stroke={Constants.TREE_NODE_LINE_COLOR}
+                strokeOpacity="0.75"
+                strokeWidth="0.5"
+              />
+            </pattern>
+            <pattern
+              id="grid"
+              width="60"
+              height="60"
+              patternUnits="userSpaceOnUse"
+            >
+              <rect width="60" height="60" fill="url(#smallGrid)" />
+              {/* <path
+                d="M 80 0 L 0 0 0 80"
+                fill="none"
+                stroke="gray"
+                stroke-width="0.5"
+              /> */}
+            </pattern>
+          </defs>
+          <defs>
+            <filter id="shadow">
+              <feDropShadow dx="10" dy="20" stdDeviation="12" />
+            </filter>
+          </defs>
+
+          {/* Background */}
+          <rect width={canvasWidth} height={canvasHeight} fill="url(#grid)" />
+
+          {/* Group containing Tree */}
           <Group top={margin.top} left={margin.left}>
             <Tree
-              root={hierarchy(data, d => (d.isExpanded ? null : d.children))}
-              size={[sizeWidth, sizeHeight]}
-              separation={(a, b) => (a.parent === b.parent ? 1 : 0.5) / a.depth}
+              root={hierarchy(this.state.data, d =>
+                d.isCollapsed ? null : d.children
+              )}
+              size={[innerWidth, innerHeight]}
+              /* if a and b have same parent, separation is half compared to
+                 if a and b are from separate parents
+                 as a's depth increases, separation between a and b is smaller */
+              separation={(a, b) => (a.parent === b.parent ? 1 : 2) / a.depth}
             >
-              {data => (
+              {rootNode => (
                 <Group top={origin.y} left={origin.x}>
-                  {data.links().map((link, i) => {
+                  {/* render edges */}
+                  {rootNode.links().map((link, linkKey) => {
                     let LinkComponent;
 
-                    if (layout === "polar") {
+                    if (orientation === "vertical") {
                       if (linkType === "step") {
-                        LinkComponent = LinkRadialStep;
+                        LinkComponent = LinkVerticalStep;
                       } else if (linkType === "curve") {
-                        LinkComponent = LinkRadialCurve;
+                        LinkComponent = LinkVerticalCurve;
                       } else if (linkType === "line") {
-                        LinkComponent = LinkRadialLine;
+                        LinkComponent = LinkVerticalLine;
                       } else {
-                        LinkComponent = LinkRadial;
+                        LinkComponent = LinkVertical;
                       }
                     } else {
-                      if (orientation === "vertical") {
-                        if (linkType === "step") {
-                          LinkComponent = LinkVerticalStep;
-                        } else if (linkType === "curve") {
-                          LinkComponent = LinkVerticalCurve;
-                        } else if (linkType === "line") {
-                          LinkComponent = LinkVerticalLine;
-                        } else {
-                          LinkComponent = LinkVertical;
-                        }
+                      if (linkType === "step") {
+                        LinkComponent = LinkHorizontalStep;
+                      } else if (linkType === "curve") {
+                        LinkComponent = LinkHorizontalCurve;
+                      } else if (linkType === "line") {
+                        LinkComponent = LinkHorizontalLine;
                       } else {
-                        if (linkType === "step") {
-                          LinkComponent = LinkHorizontalStep;
-                        } else if (linkType === "curve") {
-                          LinkComponent = LinkHorizontalCurve;
-                        } else if (linkType === "line") {
-                          LinkComponent = LinkHorizontalLine;
-                        } else {
-                          LinkComponent = LinkHorizontal;
-                        }
+                        LinkComponent = LinkHorizontal;
                       }
                     }
 
                     return (
                       <LinkComponent
                         data={link}
-                        stroke="#374469"
+                        stroke={Constants.TREE_NODE_LINE_COLOR}
                         strokeWidth="1"
                         fill="none"
-                        key={i}
+                        key={linkKey}
                         onClick={data => event => {
                           console.log(data);
                         }}
@@ -185,9 +218,9 @@ export default class extends React.Component {
                     );
                   })}
 
-                  {data.descendants().map((node, key) => {
-                    const width = 25;
-                    const height = 25;
+                  {/* render nodes */}
+                  {rootNode.descendants().map((node, nodeKey) => {
+                    const radius = Constants.TREE_NODE_DIAMETER;
 
                     let top;
                     let left;
@@ -206,52 +239,45 @@ export default class extends React.Component {
                     }
 
                     return (
-                      <Group top={top} left={left} key={key}>
-                        {node.depth === 0 && (
+                      <Group top={top} left={left} key={nodeKey}>
+                        {
                           <circle
-                            r={12}
-                            fill="url('#lg')"
-                            onClick={() => {
-                              node.data.isExpanded = !node.data.isExpanded;
-                              console.log(node);
-                              this.forceUpdate();
-                            }}
-                          />
-                        )}
-                        {node.depth !== 0 && (
-                          <rect
-                            height={height}
-                            width={width}
-                            y={-height / 2}
-                            x={-width / 2}
-                            fill={"#272b4d"}
-                            stroke={node.data.children ? "#03c0dc" : "#26deb0"}
+                            r={radius}
+                            style={
+                              node.data.id === this.state.selectedNodeID
+                                ? { filter: "url(#shadow);" } // does not seem to work
+                                : {}
+                            }
+                            fill={
+                              node.data.id === this.state.selectedNodeID
+                                ? Constants.TREE_NODE_SELECTED_FILL_COLOR
+                                : Constants.TREE_NODE_FILL_COLOR
+                            }
+                            stroke={
+                              node.data.id === this.state.selectedNodeID
+                                ? Constants.TREE_NODE_SELECTED_LINE_COLOR
+                                : Constants.TREE_NODE_LINE_COLOR
+                            }
                             strokeWidth={1}
-                            strokeDasharray={!node.data.children ? "2,2" : "0"}
-                            strokeOpacity={!node.data.children ? 0.6 : 1}
-                            rx={!node.data.children ? 14 : 14}
+                            // strokeDasharray={!node.data.children ? "2,2" : "0"}
+                            // strokeOpacity={!node.data.children ? 0.6 : 1}
                             // onClick={() => {
                             //   node.data.isExpanded = !node.data.isExpanded;
                             //   console.log(node);
                             //   this.forceUpdate();
                             // }}
                           />
-                        )}
+                        }
                         <text
                           dy={".33em"}
-                          fontSize={9}
-                          fontFamily="Arial"
+                          fontSize={Constants.TREE_NODE_VALUE_FONT_SIZE}
+                          fontWeight={Constants.TREE_NODE_VALUE_FONT_WEIGHT}
+                          fontFamily="Roboto"
                           textAnchor={"middle"}
                           style={{ pointerEvents: "none" }}
-                          fill={
-                            node.depth === 0
-                              ? "#71248e"
-                              : node.children
-                              ? "white"
-                              : "#26deb0"
-                          }
+                          fill={Constants.FONT_PRIMARY_COLOR}
                         >
-                          {node.data.name}
+                          {node.data.value}
                         </text>
                       </Group>
                     );
@@ -261,6 +287,11 @@ export default class extends React.Component {
             </Tree>
           </Group>
         </svg>
+
+        {/* Node Control Panel */}
+        <div style={nodeControlPanelStyle}>
+          <NodeControlPanel />
+        </div>
       </div>
     );
   }

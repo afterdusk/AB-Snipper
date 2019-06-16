@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function NodeControlPanelCard() {
+export default function NodeControlPanelCard(props) {
   const classes = useStyles();
 
   return (
@@ -43,15 +43,17 @@ export default function NodeControlPanelCard() {
           <TextField
             id="standard-number"
             type="number"
+            value={props.nodeData.children.length}
+            onChange={props.updateNodeChildren}
             className={classes.inputField}
             InputLabelProps={{
               shrink: true
             }}
             InputProps={{
               inputProps: {
-                min: "0",
+                min: 0,
                 max: Constants.CONTROL_PANEL_MAX_CHILD_NODES,
-                step: "1"
+                step: 1
               }
             }}
             margin="normal"

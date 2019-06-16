@@ -24,6 +24,7 @@ import * as Constants from "../Constants";
     - variable thus should be used for data that would not affect the DOM */
 
 // TODO: Remove logic allowing for different configs, no need for config to be dynamic
+// TODO: Set hard limits on tree height and max nodes (per node and for entire tree), ensure restrictions propagated to user
 export default class extends React.Component {
   initData = {
     id: 0,
@@ -107,12 +108,49 @@ export default class extends React.Component {
         if (result) break;
       }
     } else if (data instanceof Object) {
-      console.log("data.id: " + data.id + ", id: " + id);
+      // console.log("data.id: " + data.id + ", id: " + id);
       if (data.id === id) return data;
       else return this.getNodeDataObject(data.children, id);
     }
     return result;
   }
+
+  updateNodeChildren = event => {
+    // TODO: Is it ok to modify JSON object directly?
+    var nodeDataObject = this.getNodeDataObject(
+      this.state.data,
+      this.state.selectedNodeID
+    );
+    var numChildren = nodeDataObject.children.length;
+    var newNumChildren = event.target.value;
+    console.log(newNumChildren);
+    console.log(numChildren);
+    if (newNumChildren < numChildren) {
+      for (var i = numChildren - 1; i >= newNumChildren; i--) {
+        var removedNode = nodeDataObject.children.pop();
+        var newNodeIDs = new Set(this.state.nodeIDs);
+        newNodeIDs.delete(removedNode.id);
+        this.setState({ nodeIDs: newNodeIDs });
+      }
+    } else {
+      for (i = numChildren; i < newNumChildren; i++) {
+        var newID = 0;
+        // TODO: Refine to ensure no infinite loop
+        while (this.state.nodeIDs.has(newID)) {
+          newID = Math.floor(
+            Math.random() * Math.floor(Constants.TREE_NODE_ID_LIMIT)
+          );
+        }
+        var newNode = {
+          id: newID,
+          value: "0",
+          children: []
+        };
+        nodeDataObject.children.push(newNode);
+      }
+    }
+    this.forceUpdate();
+  };
 
   render() {
     const {
@@ -240,7 +278,7 @@ export default class extends React.Component {
                         fill="none"
                         key={linkKey}
                         onClick={data => event => {
-                          console.log(data);
+                          // console.log(data);
                         }}
                       />
                     );
@@ -292,7 +330,7 @@ export default class extends React.Component {
                             onClick={() => {
                               this.setState({ selectedNodeID: node.data.id });
                               // node.data.isCollapsed = !node.data.isCollapsed;
-                              console.log(node);
+                              // console.log(node);
                               this.forceUpdate();
                             }}
                           />
@@ -324,6 +362,7 @@ export default class extends React.Component {
               this.state.data,
               this.state.selectedNodeID
             )}
+            updateNodeChildren={this.updateNodeChildren}
           />
         </div>
       </div>

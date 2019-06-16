@@ -139,6 +139,10 @@ export default class extends React.Component {
       newNodeIDs.delete(removedNode.id);
       this.setState({ nodeIDs: newNodeIDs });
     }
+    // leaf nodes should have values
+    if (targetCount === 0) {
+      nodeData.value = 0;
+    }
   }
 
   // adds child nodes to a node up until a specified new count
@@ -157,6 +161,10 @@ export default class extends React.Component {
         children: []
       };
       nodeData.children.push(newNode);
+    }
+    // non-leaf nodes should not have values
+    if (targetCount > 0) {
+      nodeData.value = null;
     }
   }
 

@@ -28,14 +28,28 @@ const styles = theme => ({
 });
 
 class NodeControlPanelCard extends React.Component {
+  state = {
+    childNodeCount: this.props.nodeData.children.length
+  };
+
   onChange = event => {
-    if (event.target.value <= Constants.CONTROL_PANEL_MAX_CHILD_NODES) {
+    // TODO: Reset to correct value in TextField when user clicks away
+    var newValue = event.target.value;
+    // value defaults to 0 if field is blank
+    // var newValue = event.target.value === "" ? 0 : event.target.value;
+    // event.target.value = newValue;
+
+    if (newValue >= 0 && newValue <= Constants.CONTROL_PANEL_MAX_CHILD_NODES) {
+      console.log("called");
       this.props.updateNodeChildren(event);
     }
+    this.setState({ childNodeCount: newValue });
   };
 
   render() {
     const { classes } = this.props;
+
+    // var childNodeCount = this.props.nodeData.children.length;
     return (
       <Card className={classes.card}>
         <CardContent>
@@ -50,8 +64,14 @@ class NodeControlPanelCard extends React.Component {
             <TextField
               id="standard-number"
               type="number"
-              value={this.props.nodeData.children.length}
+              value={this.state.childNodeCount}
               onChange={this.onChange}
+              error={
+                this.state.childNodeCount < 0 ||
+                this.state.childNodeCount >
+                  Constants.CONTROL_PANEL_MAX_CHILD_NODES
+              }
+              // helperText="A node can only have up to 10 children"
               className={classes.inputField}
               InputLabelProps={{
                 shrink: true
@@ -59,7 +79,7 @@ class NodeControlPanelCard extends React.Component {
               InputProps={{
                 inputProps: {
                   min: 0,
-                  max: Constants.CONTROL_PANEL_MAX_CHILD_NODES,
+                  max: 10,
                   step: 1
                 }
               }}

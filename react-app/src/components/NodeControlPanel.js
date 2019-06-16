@@ -46,6 +46,18 @@ class NodeControlPanelCard extends React.Component {
     this.setState({ childNodeCount: newValue });
   };
 
+  // when a new node is selected by parent, state should updated on new props
+  componentDidUpdate(oldProps) {
+    const newProps = this.props;
+    if (
+      oldProps.nodeData.children.length !== newProps.nodeData.children.length
+    ) {
+      this.setState({
+        childNodeCount: newProps.nodeData.children.length
+      });
+    }
+  }
+
   render() {
     const { classes } = this.props;
 

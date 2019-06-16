@@ -28,37 +28,37 @@ import * as Constants from "../Constants";
 export default class extends React.Component {
   initData = {
     id: 0,
-    value: "",
+    value: null,
     children: [
       {
         id: 1,
-        value: "",
+        value: null,
         children: [
           {
             id: 2,
-            value: "",
+            value: null,
             children: [
-              { id: 3, value: "2", children: [] },
-              { id: 4, value: "6", children: [] }
+              { id: 3, value: 2, children: [] },
+              { id: 4, value: 6, children: [] }
             ]
           },
           {
             id: 5,
-            value: "1",
+            value: 1,
             children: []
           },
           {
             id: 6,
-            value: "",
+            value: null,
             children: [
               {
                 id: 7,
-                value: "4",
+                value: 4,
                 children: []
               },
               {
                 id: 8,
-                value: "3",
+                value: 3,
                 children: []
               }
             ]
@@ -67,19 +67,19 @@ export default class extends React.Component {
       },
       {
         id: 9,
-        value: "",
+        value: null,
         children: [
           {
             id: 10,
-            value: "",
+            value: null,
             children: [
-              { id: 11, value: "5", children: [] },
-              { id: 12, value: "7", children: [] }
+              { id: 11, value: 5, children: [] },
+              { id: 12, value: 7, children: [] }
             ]
           },
           {
             id: 13,
-            value: "2",
+            value: 2,
             children: []
           }
         ]
@@ -100,57 +100,65 @@ export default class extends React.Component {
     nodeCount: this.initCount
   };
 
-  getNodeDataObject(data, id) {
+  // callback function for NodeControlPanel to modify child count
+  updateChildNodes = event => {
+    // TODO: Is it ok to modify JSON object directly?
+    var nodeData = this.getNodeData(this.state.data, this.state.selectedNodeID);
+    var childNodeCount = nodeData.children.length;
+    var targetCount = parseInt(event.target.value, 10);
+    if (targetCount < childNodeCount) {
+      this.removeChildNodes(childNodeCount, targetCount, nodeData);
+    } else {
+      this.addChildNodes(childNodeCount, targetCount, nodeData);
+    }
+    this.forceUpdate();
+  };
+
+  /*-------------------- Helper Functions -------------------- */
+  // traverses tree JSON to get data of node specified by 'id'
+  getNodeData(data, id) {
     var result = null;
     if (data instanceof Array) {
       for (var i = 0; i < data.length; i++) {
-        result = this.getNodeDataObject(data[i], id);
+        result = this.getNodeData(data[i], id);
         if (result) break;
       }
     } else if (data instanceof Object) {
       // console.log("data.id: " + data.id + ", id: " + id);
       if (data.id === id) return data;
-      else return this.getNodeDataObject(data.children, id);
+      else return this.getNodeData(data.children, id);
     }
     return result;
   }
 
-  updateNodeChildren = event => {
-    // TODO: Is it ok to modify JSON object directly?
-    var nodeDataObject = this.getNodeDataObject(
-      this.state.data,
-      this.state.selectedNodeID
-    );
-    var numChildren = nodeDataObject.children.length;
-    var newNumChildren = event.target.value;
-    console.log(newNumChildren);
-    console.log(numChildren);
-    if (newNumChildren < numChildren) {
-      for (var i = numChildren - 1; i >= newNumChildren; i--) {
-        var removedNode = nodeDataObject.children.pop();
-        var newNodeIDs = new Set(this.state.nodeIDs);
-        newNodeIDs.delete(removedNode.id);
-        this.setState({ nodeIDs: newNodeIDs });
-      }
-    } else {
-      for (i = numChildren; i < newNumChildren; i++) {
-        var newID = 0;
-        // TODO: Refine to ensure no infinite loop
-        while (this.state.nodeIDs.has(newID)) {
-          newID = Math.floor(
-            Math.random() * Math.floor(Constants.TREE_NODE_ID_LIMIT)
-          );
-        }
-        var newNode = {
-          id: newID,
-          value: "0",
-          children: []
-        };
-        nodeDataObject.children.push(newNode);
-      }
+  // removes child nodes from a node to a specified new count
+  removeChildNodes(childNodeCount, targetCount, nodeData) {
+    for (var i = childNodeCount - 1; i >= targetCount; i--) {
+      var removedNode = nodeData.children.pop();
+      var newNodeIDs = new Set(this.state.nodeIDs);
+      newNodeIDs.delete(removedNode.id);
+      this.setState({ nodeIDs: newNodeIDs });
     }
-    this.forceUpdate();
-  };
+  }
+
+  // adds child nodes to a node up until a specified new count
+  addChildNodes(childNodeCount, targetCount, nodeData) {
+    for (var i = childNodeCount; i < targetCount; i++) {
+      var newID = 0;
+      // TODO: Refine to ensure no infinite loop
+      while (this.state.nodeIDs.has(newID)) {
+        newID = Math.floor(
+          Math.random() * Math.floor(Constants.TREE_NODE_ID_LIMIT)
+        );
+      }
+      var newNode = {
+        id: newID,
+        value: 0,
+        children: []
+      };
+      nodeData.children.push(newNode);
+    }
+  }
 
   render() {
     const {
@@ -358,11 +366,11 @@ export default class extends React.Component {
         {/* Node Control Panel */}
         <div style={nodeControlPanelStyle}>
           <NodeControlPanel
-            nodeData={this.getNodeDataObject(
+            nodeData={this.getNodeData(
               this.state.data,
               this.state.selectedNodeID
             )}
-            updateNodeChildren={this.updateNodeChildren}
+            updateNodeChildren={this.updateChildNodes}
           />
         </div>
       </div>

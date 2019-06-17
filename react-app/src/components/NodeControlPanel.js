@@ -5,6 +5,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import * as Constants from "../Constants";
 
 const styles = theme => ({
@@ -32,18 +33,19 @@ class NodeControlPanelCard extends React.Component {
     childNodeCount: this.props.nodeData.children.length
   };
 
-  onChange = event => {
-    // TODO: Reset to correct value in TextField when user clicks away
+  handleChildCountChange = event => {
     var newValue = event.target.value;
-    // value defaults to 0 if field is blank
-    // var newValue = event.target.value === "" ? 0 : event.target.value;
-    // event.target.value = newValue;
 
     if (newValue >= 0 && newValue <= Constants.CONTROL_PANEL_MAX_CHILD_NODES) {
       console.log("called");
       this.props.updateNodeChildren(event);
     }
     this.setState({ childNodeCount: newValue });
+  };
+
+  // reset
+  resetChildCount = () => {
+    this.setState({ childNodeCount: this.props.nodeData.children.length });
   };
 
   // when a new node is selected by parent, state should updated on new props
@@ -61,7 +63,6 @@ class NodeControlPanelCard extends React.Component {
   render() {
     const { classes } = this.props;
 
-    // var childNodeCount = this.props.nodeData.children.length;
     return (
       <Card className={classes.card}>
         <CardContent>
@@ -73,30 +74,39 @@ class NodeControlPanelCard extends React.Component {
               {Constants.CONTROL_PANEL_CHILD_FIELD}
             </Typography>
 
-            <TextField
-              id="standard-number"
-              type="number"
-              value={this.state.childNodeCount}
-              onChange={this.onChange}
-              error={
-                this.state.childNodeCount < 0 ||
-                this.state.childNodeCount >
-                  Constants.CONTROL_PANEL_MAX_CHILD_NODES
-              }
-              // helperText="A node can only have up to 10 children"
-              className={classes.inputField}
-              InputLabelProps={{
-                shrink: true
-              }}
-              InputProps={{
-                inputProps: {
-                  min: 0,
-                  max: 10,
-                  step: 1
+            <ClickAwayListener onClickAway={this.resetChildCount}>
+              <TextField
+                id="standard-number"
+                type="number"
+                value={this.state.childNodeCount}
+                onChange={this.handleChildCountChange}
+                error={
+                  this.state.childNodeCount < 0 ||
+                  this.state.childNodeCount >
+                    Constants.CONTROL_PANEL_MAX_CHILD_NODES
                 }
-              }}
-              margin="normal"
-            />
+                helperText={
+                  this.state.childNodeCount < 0
+                    ? Constants.CONTRON_PANEL_CHILD_FIELD_NEGATIVE_ERROR
+                    : this.state.childNodeCount >
+                      Constants.CONTROL_PANEL_MAX_CHILD_NODES
+                    ? Constants.CONTROL_PANEL_CHILD_FIELD_OVERFLOW_ERROR
+                    : ""
+                }
+                className={classes.inputField}
+                InputLabelProps={{
+                  shrink: true
+                }}
+                InputProps={{
+                  inputProps: {
+                    min: 0,
+                    max: 10,
+                    step: 1
+                  }
+                }}
+                margin="normal"
+              />
+            </ClickAwayListener>
           </div>
         </CardContent>
       </Card>

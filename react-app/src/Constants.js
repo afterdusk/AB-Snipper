@@ -15,6 +15,10 @@ export const CONTROL_PANEL_WIDTH = 275;
 export const CONTROL_PANEL_TEXT_FIELD_WIDTH = 50;
 export const CONTROL_PANEL_MAX_CHILD_NODES = 10;
 export const CONTROL_PANEL_CHILD_FIELD = "Children";
+export const CONTRON_PANEL_CHILD_FIELD_NEGATIVE_ERROR =
+  "A node can only have 0 or more children";
+export const CONTROL_PANEL_CHILD_FIELD_OVERFLOW_ERROR =
+  "A node can only have up to " + CONTROL_PANEL_MAX_CHILD_NODES + " children";
 
 // TreeCanvas
 export const TREE_NODE_DIAMETER = 25;

@@ -8,6 +8,7 @@ import TextField from "@material-ui/core/TextField";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import * as Constants from "../Constants";
 
+// TODO: Extract constants
 const styles = theme => ({
   card: {
     width: Constants.CONTROL_PANEL_WIDTH,
@@ -15,16 +16,16 @@ const styles = theme => ({
   },
   text: {
     display: "table-cell",
-    width: 175,
-    bottom: 0
+    width: "75%"
   },
   inputField: {
-    width: Constants.CONTROL_PANEL_TEXT_FIELD_WIDTH,
-    display: "table-cell"
+    display: "table-cell",
+    verticalAlign: "bottom"
   },
   inputFieldRow: {
-    height: 50,
-    width: "100%"
+    width: "100%",
+    marginTop: 10
+    // padding: 10
   }
 });
 
@@ -37,7 +38,6 @@ class NodeControlPanelCard extends React.Component {
     var newValue = event.target.value;
 
     if (newValue >= 0 && newValue <= Constants.CONTROL_PANEL_MAX_CHILD_NODES) {
-      console.log("called");
       this.props.updateNodeChildren(event);
     }
     this.setState({ childNodeCount: newValue });
@@ -66,17 +66,18 @@ class NodeControlPanelCard extends React.Component {
     return (
       <Card className={classes.card}>
         <CardContent>
-          <Typography variant="h6">
+          <Typography variant="subtitle2">
             {Constants.CONTROL_PANEL_CARD_HEADER}
           </Typography>
           <div className={classes.inputFieldRow}>
-            <Typography variant="subtitle2" className={classes.text}>
+            <Typography variant="h6" className={classes.text}>
               {Constants.CONTROL_PANEL_CHILD_FIELD}
             </Typography>
 
             <ClickAwayListener onClickAway={this.resetChildCount}>
               <TextField
                 id="standard-number"
+                className={classes.inputField}
                 type="number"
                 value={this.state.childNodeCount}
                 onChange={this.handleChildCountChange}
@@ -87,13 +88,12 @@ class NodeControlPanelCard extends React.Component {
                 }
                 helperText={
                   this.state.childNodeCount < 0
-                    ? Constants.CONTRON_PANEL_CHILD_FIELD_NEGATIVE_ERROR
+                    ? Constants.CONTROL_PANEL_CHILD_FIELD_NEGATIVE_ERROR
                     : this.state.childNodeCount >
                       Constants.CONTROL_PANEL_MAX_CHILD_NODES
                     ? Constants.CONTROL_PANEL_CHILD_FIELD_OVERFLOW_ERROR
-                    : ""
+                    : " "
                 }
-                className={classes.inputField}
                 InputLabelProps={{
                   shrink: true
                 }}
@@ -101,9 +101,45 @@ class NodeControlPanelCard extends React.Component {
                   inputProps: {
                     min: 0,
                     max: 10,
-                    step: 1
+                    step: 1,
+                    style: {
+                      // TODO: Refine logic for centralising text
+                      textAlign: "center",
+                      paddingLeft: 10
+                    }
                   }
                 }}
+                style={{ width: "600px" }}
+                margin="normal"
+                fullWidth
+              />
+            </ClickAwayListener>
+          </div>
+          <div className={classes.inputFieldRow}>
+            <Typography variant="h6" className={classes.text}>
+              {Constants.CONTROL_PANEL_VALUE_FIELD}
+            </Typography>
+
+            <ClickAwayListener onClickAway={this.resetChildCount}>
+              <TextField
+                id="standard-number"
+                className={classes.inputField}
+                type="number"
+                helperText={" "}
+                InputLabelProps={{
+                  shrink: true
+                }}
+                InputProps={{
+                  inputProps: {
+                    step: 1,
+                    style: {
+                      // TODO: Refine logic for centralising text
+                      textAlign: "center",
+                      paddingLeft: 10
+                    }
+                  }
+                }}
+                style={{ width: "600px" }}
                 margin="normal"
               />
             </ClickAwayListener>

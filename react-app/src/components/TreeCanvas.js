@@ -100,9 +100,9 @@ export default class extends React.Component {
     nodeCount: this.initCount
   };
 
-  // callback function for NodeControlPanel to modify child count
-  updateChildNodes = event => {
-    // TODO: Is it ok to modify JSON object directly?
+  // callback function to modify child count of a node
+  updateNodeChildren = event => {
+    // TODO: Stop modifying state directly; remove use of forceUpdate()
     var nodeData = this.getNodeData(this.state.data, this.state.selectedNodeID);
     var childNodeCount = nodeData.children.length;
     var targetCount = parseInt(event.target.value, 10);
@@ -111,6 +111,16 @@ export default class extends React.Component {
     } else {
       this.addChildNodes(childNodeCount, targetCount, nodeData);
     }
+    this.forceUpdate();
+  };
+
+  // callback function to modify value of a node
+  updateNodeValue = event => {
+    var nodeData = this.getNodeData(this.state.data, this.state.selectedNodeID);
+    if (nodeData.children.length !== 0) {
+      return;
+    }
+    nodeData.value = event.target.value;
     this.forceUpdate();
   };
 
@@ -378,7 +388,8 @@ export default class extends React.Component {
               this.state.data,
               this.state.selectedNodeID
             )}
-            updateNodeChildren={this.updateChildNodes}
+            updateNodeChildren={this.updateNodeChildren}
+            updateNodeValue={this.updateNodeValue}
           />
         </div>
       </div>

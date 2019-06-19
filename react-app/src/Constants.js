@@ -1,3 +1,5 @@
+import { createMuiTheme } from "@material-ui/core/styles";
+
 export const APP_NAME = "aB Scissors";
 
 // Colors
@@ -5,6 +7,15 @@ export const COLOR_HEX_BLACK = "#000000";
 export const COLOR_HEX_WHITE = "#ffffff";
 export const COLOR_HEX_DARK_GREY = "#a5a5a5";
 export const COLOR_HEX_DENIM_BLUE = "#1c77c3";
+
+export const textTheme = createMuiTheme({
+  palette: {
+    text: {
+      primary: COLOR_HEX_BLACK,
+      secondary: COLOR_HEX_DARK_GREY
+    }
+  }
+});
 
 // Font
 export const FONT_PRIMARY_COLOR = COLOR_HEX_BLACK;

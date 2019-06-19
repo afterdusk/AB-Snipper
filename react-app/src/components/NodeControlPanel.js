@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { withStyles } from "@material-ui/styles";
+import { withStyles, ThemeProvider } from "@material-ui/styles";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -9,6 +9,7 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import * as Constants from "../Constants";
 
 // TODO: Extract constants
+// TODO: Adopt a more consistent approach to styling (inline or JSS)
 const styles = theme => ({
   card: {
     width: Constants.CONTROL_PANEL_WIDTH,
@@ -25,7 +26,6 @@ const styles = theme => ({
   inputFieldRow: {
     width: "100%",
     marginTop: 10
-    // padding: 10
   }
 });
 
@@ -48,9 +48,10 @@ class NodeControlPanelCard extends React.Component {
     this.setState({ childNodeCount: this.props.nodeData.children.length });
   };
 
-  // when a new node is selected by parent, state should updated on new props
+  // when a new node is selected by parent, state updates on new props
   componentDidUpdate(oldProps) {
     const newProps = this.props;
+
     if (
       oldProps.nodeData.children.length !== newProps.nodeData.children.length
     ) {
@@ -76,7 +77,6 @@ class NodeControlPanelCard extends React.Component {
 
             <ClickAwayListener onClickAway={this.resetChildCount}>
               <TextField
-                id="standard-number"
                 className={classes.inputField}
                 type="number"
                 value={this.state.childNodeCount}
@@ -116,33 +116,47 @@ class NodeControlPanelCard extends React.Component {
             </ClickAwayListener>
           </div>
           <div className={classes.inputFieldRow}>
-            <Typography variant="h6" className={classes.text}>
-              {Constants.CONTROL_PANEL_VALUE_FIELD}
-            </Typography>
-
-            <ClickAwayListener onClickAway={this.resetChildCount}>
-              <TextField
-                id="standard-number"
-                className={classes.inputField}
-                type="number"
-                helperText={" "}
-                InputLabelProps={{
-                  shrink: true
-                }}
-                InputProps={{
-                  inputProps: {
-                    step: 1,
-                    style: {
-                      // TODO: Refine logic for centralising text
-                      textAlign: "center",
-                      paddingLeft: 10
-                    }
+            <ThemeProvider theme={Constants.textTheme}>
+              <Typography
+                variant="h6"
+                className={classes.text}
+                color={
+                  // TODO: Ensure color updates immediately upon becoming 0
+                  this.state.childNodeCount === 0
+                    ? "textPrimary"
+                    : "textSecondary"
+                }
+              >
+                {Constants.CONTROL_PANEL_VALUE_FIELD}
+              </Typography>
+            </ThemeProvider>
+            <TextField
+              disabled={this.props.nodeData.value === null}
+              className={classes.inputField}
+              type="number"
+              value={
+                this.props.nodeData.value === null
+                  ? ""
+                  : this.props.nodeData.value
+              }
+              onChange={this.props.updateNodeValue}
+              helperText=" "
+              InputLabelProps={{
+                shrink: true
+              }}
+              InputProps={{
+                inputProps: {
+                  step: 1,
+                  style: {
+                    // TODO: Refine logic for centralising text
+                    textAlign: "center",
+                    paddingLeft: 10
                   }
-                }}
-                style={{ width: "600px" }}
-                margin="normal"
-              />
-            </ClickAwayListener>
+                }
+              }}
+              style={{ width: "600px" }}
+              margin="normal"
+            />
           </div>
         </CardContent>
       </Card>

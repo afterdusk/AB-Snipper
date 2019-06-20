@@ -1,4 +1,5 @@
 import React from "react";
+import { withStyles } from "@material-ui/styles";
 import { Group } from "@vx/group";
 import { Tree } from "@vx/hierarchy";
 import { hierarchy } from "d3-hierarchy";
@@ -16,6 +17,14 @@ import {
 import NodeControlPanel from "./NodeControlPanel";
 import * as Constants from "../Constants";
 
+const styles = theme => ({
+  clickable: {
+    "&:hover": {
+      filter: "url(#shadow)"
+    }
+  }
+});
+
 /* state vs props: 
     - props are read-only, passed from parent
     - state is private, can only be set by component
@@ -25,7 +34,7 @@ import * as Constants from "../Constants";
 
 // TODO: Remove logic allowing for different configs, no need for config to be dynamic
 // TODO: Set hard limits on tree height and max nodes (per node and for entire tree), ensure restrictions propagated to user
-export default class extends React.Component {
+class TreeCanvas extends React.Component {
   initData = {
     id: 0,
     value: null,
@@ -179,6 +188,8 @@ export default class extends React.Component {
   }
 
   render() {
+    const { classes } = this.props;
+
     const {
       canvasWidth = 800,
       canvasHeight = 800,
@@ -190,7 +201,10 @@ export default class extends React.Component {
       }
     } = this.props;
     const nodeControlPanelStyle = {
-      float: "right",
+      position: "absolute",
+      top: "60px",
+      right: "0px",
+      // float: "right",
       margin: "25px"
     };
     const innerWidth = canvasWidth - margin.left - margin.right;
@@ -298,6 +312,7 @@ export default class extends React.Component {
 
                     return (
                       <LinkComponent
+                        // className={classes.clickable}
                         data={link}
                         stroke={Constants.TREE_NODE_LINE_COLOR}
                         strokeWidth="1"
@@ -331,7 +346,12 @@ export default class extends React.Component {
                     }
 
                     return (
-                      <Group top={top} left={left} key={nodeKey}>
+                      <Group
+                        className={classes.clickable}
+                        top={top}
+                        left={left}
+                        key={nodeKey}
+                      >
                         {
                           <circle
                             r={radius}
@@ -396,3 +416,5 @@ export default class extends React.Component {
     );
   }
 }
+
+export default withStyles(styles)(TreeCanvas);

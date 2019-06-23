@@ -137,15 +137,10 @@ class TreeCanvas extends React.Component {
   // traverses tree JSON to get data of node specified by 'id'
   getNodeData(data, id) {
     var result = null;
-    if (data instanceof Array) {
-      for (var i = 0; i < data.length; i++) {
-        result = this.getNodeData(data[i], id);
-        if (result) break;
-      }
-    } else if (data instanceof Object) {
-      // console.log("data.id: " + data.id + ", id: " + id);
-      if (data.id === id) return data;
-      else return this.getNodeData(data.children, id);
+    if (data.id === id) return data;
+    for (var i = 0; i < data.children.length; i++) {
+      result = this.getNodeData(data.children[i], id);
+      if (result) break;
     }
     return result;
   }

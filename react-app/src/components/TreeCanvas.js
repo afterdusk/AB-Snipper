@@ -98,6 +98,7 @@ class TreeCanvas extends React.Component {
 
   initIDs = new Set([...Array(14).keys()]);
   initCount = 14;
+  initHeight = 4;
 
   state = {
     orientation: "vertical", // vertical || horizontal
@@ -106,7 +107,10 @@ class TreeCanvas extends React.Component {
     data: this.initData,
     selectedNodeID: this.initData.id,
     nodeIDs: this.initIDs,
-    nodeCount: this.initCount
+    nodeCount: this.initCount,
+    treeHeight: this.initHeight,
+    canvasWidth: 1000,
+    canvasHeight: 600
   };
 
   // callback function to modify child count of a node
@@ -120,6 +124,7 @@ class TreeCanvas extends React.Component {
     } else {
       this.addChildNodes(childNodeCount, targetCount, nodeData);
     }
+    this.updateCanvasSize(this.state.data);
     this.forceUpdate();
   };
 
@@ -143,6 +148,33 @@ class TreeCanvas extends React.Component {
       if (result) break;
     }
     return result;
+  }
+
+  // NOTE: currently not used anywhere
+  // traverses tree JSON to get height of node specified by 'id'
+  getNodeDepth(data, id) {
+    var result = null;
+    if (data.id === id) return 1;
+    for (var i = 0; i < data.children.length; i++) {
+      result = this.getNodeDepth(data.children[i], id);
+      if (result) {
+        result += 1;
+        break;
+      }
+    }
+    return result;
+  }
+
+  // gets the tree height i.e. max depth of leaf nodes
+  getTreeHeight(data) {
+    var maxDepth = 0;
+    for (var i = 0; i < data.children.length; i++) {
+      var depth = this.getTreeHeight(data.children[i]);
+      if (depth > maxDepth) {
+        maxDepth = depth;
+      }
+    }
+    return maxDepth + 1;
   }
 
   // removes child nodes from a node to a specified new count
@@ -182,12 +214,19 @@ class TreeCanvas extends React.Component {
     }
   }
 
+  // updates canvas height and width according to tree height
+  updateCanvasSize(data) {
+    var height = this.getTreeHeight(data);
+    console.log(height);
+    if (height !== this.state.treeHeight) {
+      this.setState({ treeHeight: height, canvasHeight: height * 150 });
+    }
+  }
+
   render() {
     const { classes } = this.props;
 
     const {
-      canvasWidth = 800,
-      canvasHeight = 800,
       margin = {
         top: 30,
         left: 30,
@@ -196,14 +235,12 @@ class TreeCanvas extends React.Component {
       }
     } = this.props;
     const nodeControlPanelStyle = {
+      // TODO: Set dynamically with respect to AppBar
       position: "absolute",
       top: "60px",
       right: "0px",
-      // float: "right",
       margin: "25px"
     };
-    const innerWidth = canvasWidth - margin.left - margin.right;
-    const innerHeight = canvasHeight - margin.top - margin.bottom;
     let origin = { x: 0, y: 0 };
 
     // for ease of reference
@@ -224,7 +261,7 @@ class TreeCanvas extends React.Component {
     return (
       <div>
         {/* Canvas */}
-        <svg width={canvasWidth} height={canvasHeight}>
+        <svg width={this.state.canvasWidth} height={this.state.canvasHeight}>
           {/* SVG custom elements */}
           <defs>
             <pattern
@@ -263,7 +300,11 @@ class TreeCanvas extends React.Component {
           </defs>
 
           {/* Background */}
-          <rect width={canvasWidth} height={canvasHeight} fill="url(#grid)" />
+          <rect
+            width={this.state.canvasWidth}
+            height={this.state.canvasHeight}
+            fill="url(#grid)"
+          />
 
           {/* Group containing Tree */}
           <Group top={margin.top} left={margin.left}>
@@ -271,11 +312,13 @@ class TreeCanvas extends React.Component {
               root={hierarchy(this.state.data, d =>
                 d.isCollapsed ? null : d.children
               )}
-              size={[innerWidth, innerHeight]}
+              size={[
+                this.state.canvasWidth - margin.left - margin.right,
+                this.state.canvasHeight - margin.top - margin.bottom
+              ]}
               /* if a and b have same parent, separation is half compared to
-                 if a and b are from separate parents
-                 as a's depth increases, separation between a and b is smaller */
-              separation={(a, b) => (a.parent === b.parent ? 1 : 2) / a.depth}
+                 if a and b are from separate parents*/
+              separation={(a, b) => (a.parent === b.parent ? 1 : 2)}
             >
               {rootNode => (
                 <Group top={origin.y} left={origin.x}>

@@ -165,16 +165,38 @@ class TreeCanvas extends React.Component {
     return result;
   }
 
-  // gets the tree height i.e. max depth of leaf nodes
+  // returns the tree height i.e. max depth of leaf nodes
   getTreeHeight(data) {
     var maxDepth = 0;
     for (var i = 0; i < data.children.length; i++) {
       var depth = this.getTreeHeight(data.children[i]);
-      if (depth > maxDepth) {
-        maxDepth = depth;
-      }
+      maxDepth = depth > maxDepth ? depth : maxDepth;
     }
     return maxDepth + 1;
+  }
+
+  // returns the tree width i.e. max number of nodes in any level
+  getTreeWidth(data) {
+    var queue = [];
+    var maxWidth = 1;
+    var width = 1;
+    var nextWidth = 0;
+    queue.push(data);
+    while (queue.length !== 0) {
+      var node = queue.shift();
+      if (width === 0) {
+        width = nextWidth;
+        nextWidth = 0;
+        maxWidth = width > maxWidth ? width : maxWidth;
+      }
+      nextWidth += node.children.length;
+      width--;
+
+      for (var i = 0; i < node.children.length; i++) {
+        queue.push(node.children[i]);
+      }
+    }
+    return maxWidth;
   }
 
   // removes child nodes from a node to a specified new count
@@ -217,9 +239,14 @@ class TreeCanvas extends React.Component {
   // updates canvas height and width according to tree height
   updateCanvasSize(data) {
     var height = this.getTreeHeight(data);
-    console.log(height);
-    if (height !== this.state.treeHeight) {
-      this.setState({ treeHeight: height, canvasHeight: height * 150 });
+    var width = this.getTreeWidth(data);
+    if (height !== this.state.treeHeight || width !== this.state.treeWidth) {
+      this.setState({
+        treeHeight: height,
+        canvasHeight: height * 150,
+        treeWidth: width,
+        canvasWidth: width * 100
+      });
     }
   }
 

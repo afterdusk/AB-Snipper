@@ -9,7 +9,10 @@ import * as Constants from "../Constants";
 
 const useStyles = makeStyles(theme => ({
   root: {
-    flexGrow: 1
+    flexGrow: 1,
+    position: "absolute",
+    zIndex: 100,
+    width: "100vw"
   },
   menuButton: {
     marginRight: theme.spacing(2)

@@ -16,6 +16,7 @@ import {
 } from "@vx/shape";
 import NodeControlPanel from "./NodeControlPanel";
 import * as Constants from "../Constants";
+import DragScroll from "./DragScroll";
 
 const styles = theme => ({
   clickable: {
@@ -99,6 +100,7 @@ class TreeCanvas extends React.Component {
   initIDs = new Set([...Array(14).keys()]);
   initCount = 14;
   initHeight = 4;
+  initWidth = 6;
 
   state = {
     orientation: "vertical", // vertical || horizontal
@@ -109,8 +111,9 @@ class TreeCanvas extends React.Component {
     nodeIDs: this.initIDs,
     nodeCount: this.initCount,
     treeHeight: this.initHeight,
-    canvasWidth: 1000,
-    canvasHeight: 600
+    treeWidth: this.initWidth,
+    canvasWidth: 800,
+    canvasHeight: 800
   };
 
   // callback function to modify child count of a node
@@ -243,9 +246,9 @@ class TreeCanvas extends React.Component {
     if (height !== this.state.treeHeight || width !== this.state.treeWidth) {
       this.setState({
         treeHeight: height,
-        canvasHeight: height * 150,
+        canvasHeight: height * 150 + 100 + 100,
         treeWidth: width,
-        canvasWidth: width * 100
+        canvasWidth: width * 100 + 100 + 100
       });
     }
   }
@@ -255,10 +258,10 @@ class TreeCanvas extends React.Component {
 
     const {
       margin = {
-        top: 30,
-        left: 30,
-        right: 30,
-        bottom: 30
+        top: 100,
+        left: 100,
+        right: 100,
+        bottom: 100
       }
     } = this.props;
     const nodeControlPanelStyle = {
@@ -288,183 +291,188 @@ class TreeCanvas extends React.Component {
     return (
       <div>
         {/* Canvas */}
-        <svg width={this.state.canvasWidth} height={this.state.canvasHeight}>
-          {/* SVG custom elements */}
-          <defs>
-            <pattern
-              id="smallGrid"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 12 0 L 0 0 0 12"
-                fill="none"
-                stroke={Constants.TREE_NODE_LINE_COLOR}
-                strokeOpacity="0.75"
-                strokeWidth="0.5"
-              />
-            </pattern>
-            <pattern
-              id="grid"
-              width="60"
-              height="60"
-              patternUnits="userSpaceOnUse"
-            >
-              <rect width="60" height="60" fill="url(#smallGrid)" />
-              {/* <path
+        <DragScroll width={"100vw"} height={"100vh"} overflow={"hidden"}>
+          <svg
+            style={{
+              width: this.state.canvasWidth,
+              height: this.state.canvasHeight,
+              minWidth: "100%",
+              minHeight: "100%"
+            }}
+          >
+            {/* SVG custom elements */}
+            <defs>
+              <pattern
+                id="smallGrid"
+                width="12"
+                height="12"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 12 0 L 0 0 0 12"
+                  fill="none"
+                  stroke={Constants.TREE_NODE_LINE_COLOR}
+                  strokeOpacity="0.75"
+                  strokeWidth="0.5"
+                />
+              </pattern>
+              <pattern
+                id="grid"
+                width="60"
+                height="60"
+                patternUnits="userSpaceOnUse"
+              >
+                <rect width="60" height="60" fill="url(#smallGrid)" />
+                {/* <path
                 d="M 80 0 L 0 0 0 80"
                 fill="none"
                 stroke="gray"
                 stroke-width="0.5"
               /> */}
-            </pattern>
-          </defs>
-          <defs>
-            <filter id="shadow">
-              <feDropShadow dx="1" dy="1" stdDeviation="2" />
-            </filter>
-          </defs>
+              </pattern>
+            </defs>
+            <defs>
+              <filter id="shadow">
+                <feDropShadow dx="1" dy="1" stdDeviation="2" />
+              </filter>
+            </defs>
 
-          {/* Background */}
-          <rect
-            width={this.state.canvasWidth}
-            height={this.state.canvasHeight}
-            fill="url(#grid)"
-          />
+            {/* Background */}
+            <rect width={"100%"} height={"100%"} fill="url(#grid)" />
 
-          {/* Group containing Tree */}
-          <Group top={margin.top} left={margin.left}>
-            <Tree
-              root={hierarchy(this.state.data, d =>
-                d.isCollapsed ? null : d.children
-              )}
-              size={[
-                this.state.canvasWidth - margin.left - margin.right,
-                this.state.canvasHeight - margin.top - margin.bottom
-              ]}
-              /* if a and b have same parent, separation is half compared to
+            {/* Group containing Tree */}
+            <Group top={margin.top} left={margin.left}>
+              <Tree
+                root={hierarchy(this.state.data, d =>
+                  d.isCollapsed ? null : d.children
+                )}
+                size={[
+                  this.state.canvasWidth - margin.left - margin.right,
+                  this.state.canvasHeight - margin.top - margin.bottom
+                ]}
+                /* if a and b have same parent, separation is half compared to
                  if a and b are from separate parents*/
-              separation={(a, b) => (a.parent === b.parent ? 1 : 2)}
-            >
-              {rootNode => (
-                <Group top={origin.y} left={origin.x}>
-                  {/* render edges */}
-                  {rootNode.links().map((link, linkKey) => {
-                    let LinkComponent;
+                separation={(a, b) => (a.parent === b.parent ? 1 : 2)}
+              >
+                {rootNode => (
+                  <Group top={origin.y} left={origin.x}>
+                    {/* render edges */}
+                    {rootNode.links().map((link, linkKey) => {
+                      let LinkComponent;
 
-                    if (orientation === "vertical") {
-                      if (linkType === "step") {
-                        LinkComponent = LinkVerticalStep;
-                      } else if (linkType === "curve") {
-                        LinkComponent = LinkVerticalCurve;
-                      } else if (linkType === "line") {
-                        LinkComponent = LinkVerticalLine;
-                      } else {
-                        LinkComponent = LinkVertical;
-                      }
-                    } else {
-                      if (linkType === "step") {
-                        LinkComponent = LinkHorizontalStep;
-                      } else if (linkType === "curve") {
-                        LinkComponent = LinkHorizontalCurve;
-                      } else if (linkType === "line") {
-                        LinkComponent = LinkHorizontalLine;
-                      } else {
-                        LinkComponent = LinkHorizontal;
-                      }
-                    }
-
-                    return (
-                      <LinkComponent
-                        // className={classes.clickable}
-                        data={link}
-                        stroke={Constants.TREE_NODE_LINE_COLOR}
-                        strokeWidth="1"
-                        fill="none"
-                        key={linkKey}
-                        onClick={data => event => {
-                          // console.log(data);
-                        }}
-                      />
-                    );
-                  })}
-
-                  {/* render nodes */}
-                  {rootNode.descendants().map((node, nodeKey) => {
-                    const radius = Constants.TREE_NODE_DIAMETER;
-
-                    let top;
-                    let left;
-                    if (layout === "polar") {
-                      const [radialX, radialY] = pointRadial(node.x, node.y);
-                      top = radialY;
-                      left = radialX;
-                    } else {
                       if (orientation === "vertical") {
-                        top = node.y;
-                        left = node.x;
-                      } else {
-                        top = node.x;
-                        left = node.y;
-                      }
-                    }
-
-                    return (
-                      <Group
-                        className={classes.clickable}
-                        top={top}
-                        left={left}
-                        key={nodeKey}
-                      >
-                        {
-                          <circle
-                            r={radius}
-                            style={
-                              node.data.id === this.state.selectedNodeID
-                                ? { filter: "url(#shadow)" }
-                                : {}
-                            }
-                            fill={
-                              node.data.id === this.state.selectedNodeID
-                                ? Constants.TREE_NODE_SELECTED_FILL_COLOR
-                                : Constants.TREE_NODE_FILL_COLOR
-                            }
-                            stroke={
-                              node.data.id === this.state.selectedNodeID
-                                ? Constants.TREE_NODE_SELECTED_LINE_COLOR
-                                : Constants.TREE_NODE_LINE_COLOR
-                            }
-                            strokeWidth={1}
-                            // strokeDasharray={!node.data.children ? "2,2" : "0"}
-                            // strokeOpacity={!node.data.children ? 0.6 : 1}
-                            onClick={() => {
-                              this.setState({ selectedNodeID: node.data.id });
-                              // node.data.isCollapsed = !node.data.isCollapsed;
-                              // console.log(node);
-                              this.forceUpdate();
-                            }}
-                          />
+                        if (linkType === "step") {
+                          LinkComponent = LinkVerticalStep;
+                        } else if (linkType === "curve") {
+                          LinkComponent = LinkVerticalCurve;
+                        } else if (linkType === "line") {
+                          LinkComponent = LinkVerticalLine;
+                        } else {
+                          LinkComponent = LinkVertical;
                         }
-                        <text
-                          dy={".33em"}
-                          fontSize={Constants.TREE_NODE_VALUE_FONT_SIZE}
-                          fontWeight={Constants.TREE_NODE_VALUE_FONT_WEIGHT}
-                          fontFamily="Roboto"
-                          textAnchor={"middle"}
-                          style={{ pointerEvents: "none" }}
-                          fill={Constants.FONT_PRIMARY_COLOR}
+                      } else {
+                        if (linkType === "step") {
+                          LinkComponent = LinkHorizontalStep;
+                        } else if (linkType === "curve") {
+                          LinkComponent = LinkHorizontalCurve;
+                        } else if (linkType === "line") {
+                          LinkComponent = LinkHorizontalLine;
+                        } else {
+                          LinkComponent = LinkHorizontal;
+                        }
+                      }
+
+                      return (
+                        <LinkComponent
+                          // className={classes.clickable}
+                          data={link}
+                          stroke={Constants.TREE_NODE_LINE_COLOR}
+                          strokeWidth="1"
+                          fill="none"
+                          key={linkKey}
+                          onClick={data => event => {
+                            // console.log(data);
+                          }}
+                        />
+                      );
+                    })}
+
+                    {/* render nodes */}
+                    {rootNode.descendants().map((node, nodeKey) => {
+                      const radius = Constants.TREE_NODE_DIAMETER;
+
+                      let top;
+                      let left;
+                      if (layout === "polar") {
+                        const [radialX, radialY] = pointRadial(node.x, node.y);
+                        top = radialY;
+                        left = radialX;
+                      } else {
+                        if (orientation === "vertical") {
+                          top = node.y;
+                          left = node.x;
+                        } else {
+                          top = node.x;
+                          left = node.y;
+                        }
+                      }
+
+                      return (
+                        <Group
+                          className={classes.clickable}
+                          top={top}
+                          left={left}
+                          key={nodeKey}
                         >
-                          {node.data.value}
-                        </text>
-                      </Group>
-                    );
-                  })}
-                </Group>
-              )}
-            </Tree>
-          </Group>
-        </svg>
+                          {
+                            <circle
+                              r={radius}
+                              style={
+                                node.data.id === this.state.selectedNodeID
+                                  ? { filter: "url(#shadow)" }
+                                  : {}
+                              }
+                              fill={
+                                node.data.id === this.state.selectedNodeID
+                                  ? Constants.TREE_NODE_SELECTED_FILL_COLOR
+                                  : Constants.TREE_NODE_FILL_COLOR
+                              }
+                              stroke={
+                                node.data.id === this.state.selectedNodeID
+                                  ? Constants.TREE_NODE_SELECTED_LINE_COLOR
+                                  : Constants.TREE_NODE_LINE_COLOR
+                              }
+                              strokeWidth={1}
+                              // strokeDasharray={!node.data.children ? "2,2" : "0"}
+                              // strokeOpacity={!node.data.children ? 0.6 : 1}
+                              onClick={() => {
+                                this.setState({ selectedNodeID: node.data.id });
+                                // node.data.isCollapsed = !node.data.isCollapsed;
+                                // console.log(node);
+                                this.forceUpdate();
+                              }}
+                            />
+                          }
+                          <text
+                            dy={".33em"}
+                            fontSize={Constants.TREE_NODE_VALUE_FONT_SIZE}
+                            fontWeight={Constants.TREE_NODE_VALUE_FONT_WEIGHT}
+                            fontFamily="Roboto"
+                            textAnchor={"middle"}
+                            style={{ pointerEvents: "none" }}
+                            fill={Constants.FONT_PRIMARY_COLOR}
+                          >
+                            {node.data.value}
+                          </text>
+                        </Group>
+                      );
+                    })}
+                  </Group>
+                )}
+              </Tree>
+            </Group>
+          </svg>
+        </DragScroll>
 
         {/* Node Control Panel */}
         <div style={nodeControlPanelStyle}>

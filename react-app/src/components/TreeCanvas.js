@@ -3,20 +3,10 @@ import { withStyles } from "@material-ui/styles";
 import { Group } from "@vx/group";
 import { Tree } from "@vx/hierarchy";
 import { hierarchy } from "d3-hierarchy";
-import { pointRadial } from "d3-shape";
-import {
-  LinkHorizontal,
-  LinkVertical,
-  LinkHorizontalStep,
-  LinkVerticalStep,
-  LinkHorizontalCurve,
-  LinkVerticalCurve,
-  LinkHorizontalLine,
-  LinkVerticalLine
-} from "@vx/shape";
+import { LinkVerticalCurve, LinkVerticalLine } from "@vx/shape";
 import NodeControlPanel from "./NodeControlPanel";
-import * as Constants from "../Constants";
 import DragScroll from "./DragScroll";
+import * as Constants from "../Constants";
 
 const styles = theme => ({
   clickable: {
@@ -103,17 +93,20 @@ class TreeCanvas extends React.Component {
   initWidth = 6;
 
   state = {
-    orientation: "vertical", // vertical || horizontal
     linkType: "line", // diagonal || step || curve || line
-    stepPercent: 0.5, // only applicable to step linkType
     data: this.initData,
     selectedNodeID: this.initData.id,
     nodeIDs: this.initIDs,
     nodeCount: this.initCount,
     treeHeight: this.initHeight,
     treeWidth: this.initWidth,
-    canvasWidth: 800,
-    canvasHeight: 800
+    canvasWidth:
+      this.initWidth * Constants.TREE_NODE_HORIZONTAL_SPACING +
+      Constants.CANVAS_PADDING * 2,
+    canvasHeight:
+      this.initHeight * Constants.TREE_NODE_VERTICAL_SPACING +
+      Constants.CANVAS_PADDING_TOP +
+      Constants.CANVAS_PADDING * 2
   };
 
   // callback function to modify child count of a node
@@ -246,9 +239,14 @@ class TreeCanvas extends React.Component {
     if (height !== this.state.treeHeight || width !== this.state.treeWidth) {
       this.setState({
         treeHeight: height,
-        canvasHeight: height * 150 + 100 + 100,
+        canvasHeight:
+          height * Constants.TREE_NODE_VERTICAL_SPACING +
+          Constants.CANVAS_PADDING_TOP +
+          Constants.CANVAS_PADDING * 2,
         treeWidth: width,
-        canvasWidth: width * 100 + 100 + 100
+        canvasWidth:
+          width * Constants.TREE_NODE_HORIZONTAL_SPACING +
+          Constants.CANVAS_PADDING * 2
       });
     }
   }
@@ -258,10 +256,10 @@ class TreeCanvas extends React.Component {
 
     const {
       margin = {
-        top: 100,
-        left: 100,
-        right: 100,
-        bottom: 100
+        top: Constants.CANVAS_PADDING + Constants.CANVAS_PADDING_TOP,
+        left: Constants.CANVAS_PADDING,
+        right: Constants.CANVAS_PADDING,
+        bottom: Constants.CANVAS_PADDING
       }
     } = this.props;
     const nodeControlPanelStyle = {
@@ -274,7 +272,7 @@ class TreeCanvas extends React.Component {
     let origin = { x: 0, y: 0 };
 
     // for ease of reference
-    const { orientation, layout, linkType } = this.state;
+    const { linkType } = this.state;
 
     /* High Level DOM structure
     TODO: Consider abstracting tree to a separate component, 
@@ -360,26 +358,10 @@ class TreeCanvas extends React.Component {
                     {rootNode.links().map((link, linkKey) => {
                       let LinkComponent;
 
-                      if (orientation === "vertical") {
-                        if (linkType === "step") {
-                          LinkComponent = LinkVerticalStep;
-                        } else if (linkType === "curve") {
-                          LinkComponent = LinkVerticalCurve;
-                        } else if (linkType === "line") {
-                          LinkComponent = LinkVerticalLine;
-                        } else {
-                          LinkComponent = LinkVertical;
-                        }
-                      } else {
-                        if (linkType === "step") {
-                          LinkComponent = LinkHorizontalStep;
-                        } else if (linkType === "curve") {
-                          LinkComponent = LinkHorizontalCurve;
-                        } else if (linkType === "line") {
-                          LinkComponent = LinkHorizontalLine;
-                        } else {
-                          LinkComponent = LinkHorizontal;
-                        }
+                      if (linkType === "curve") {
+                        LinkComponent = LinkVerticalCurve;
+                      } else if (linkType === "line") {
+                        LinkComponent = LinkVerticalLine;
                       }
 
                       return (
@@ -401,21 +383,8 @@ class TreeCanvas extends React.Component {
                     {rootNode.descendants().map((node, nodeKey) => {
                       const radius = Constants.TREE_NODE_DIAMETER;
 
-                      let top;
-                      let left;
-                      if (layout === "polar") {
-                        const [radialX, radialY] = pointRadial(node.x, node.y);
-                        top = radialY;
-                        left = radialX;
-                      } else {
-                        if (orientation === "vertical") {
-                          top = node.y;
-                          left = node.x;
-                        } else {
-                          top = node.x;
-                          left = node.y;
-                        }
-                      }
+                      var top = node.y;
+                      var left = node.x;
 
                       return (
                         <Group

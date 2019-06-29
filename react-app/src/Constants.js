@@ -40,3 +40,7 @@ export const TREE_NODE_VALUE_FONT_SIZE = 18; // TODO: use material-ui Typography
 export const TREE_NODE_VALUE_FONT_WEIGHT = "bold";
 export const TREE_MAX_NUM_NODES = 30;
 export const TREE_NODE_ID_LIMIT = 1000000;
+export const TREE_NODE_HORIZONTAL_SPACING = 100;
+export const TREE_NODE_VERTICAL_SPACING = 100;
+export const CANVAS_PADDING_TOP = 25;
+export const CANVAS_PADDING = 100;

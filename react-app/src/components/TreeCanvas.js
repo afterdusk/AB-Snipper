@@ -139,7 +139,7 @@ class TreeCanvas extends React.Component {
   getNodeData(data, id) {
     var result = null;
     if (data.id === id) return data;
-    for (var i = 0; i < data.children.length; i++) {
+    for (let i = 0; i < data.children.length; i++) {
       result = this.getNodeData(data.children[i], id);
       if (result) break;
     }
@@ -151,7 +151,7 @@ class TreeCanvas extends React.Component {
   getNodeDepth(data, id) {
     var result = null;
     if (data.id === id) return 1;
-    for (var i = 0; i < data.children.length; i++) {
+    for (let i = 0; i < data.children.length; i++) {
       result = this.getNodeDepth(data.children[i], id);
       if (result) {
         result += 1;
@@ -164,7 +164,7 @@ class TreeCanvas extends React.Component {
   // returns the tree height i.e. max depth of leaf nodes
   getTreeHeight(data) {
     var maxDepth = 0;
-    for (var i = 0; i < data.children.length; i++) {
+    for (let i = 0; i < data.children.length; i++) {
       var depth = this.getTreeHeight(data.children[i]);
       maxDepth = depth > maxDepth ? depth : maxDepth;
     }
@@ -188,7 +188,7 @@ class TreeCanvas extends React.Component {
       nextWidth += node.children.length;
       width--;
 
-      for (var i = 0; i < node.children.length; i++) {
+      for (let i = 0; i < node.children.length; i++) {
         queue.push(node.children[i]);
       }
     }
@@ -197,12 +197,12 @@ class TreeCanvas extends React.Component {
 
   // removes child nodes from a node to a specified new count
   removeChildNodes(childNodeCount, targetCount, nodeData) {
-    for (var i = childNodeCount - 1; i >= targetCount; i--) {
+    var newNodeIDs = new Set(this.state.nodeIDs);
+    for (let i = childNodeCount - 1; i >= targetCount; i--) {
       var removedNode = nodeData.children.pop();
-      var newNodeIDs = new Set(this.state.nodeIDs);
       newNodeIDs.delete(removedNode.id);
-      this.setState({ nodeIDs: newNodeIDs });
     }
+    this.setState({ nodeIDs: newNodeIDs });
     // leaf nodes should have values
     if (targetCount === 0) {
       nodeData.value = 0;
@@ -211,7 +211,8 @@ class TreeCanvas extends React.Component {
 
   // adds child nodes to a node up until a specified new count
   addChildNodes(childNodeCount, targetCount, nodeData) {
-    for (var i = childNodeCount; i < targetCount; i++) {
+    var newNodeIDs = new Set(this.state.nodeIDs);
+    for (let i = childNodeCount; i < targetCount; i++) {
       var newID = 0;
       // TODO: Refine to ensure no infinite loop
       while (this.state.nodeIDs.has(newID)) {
@@ -225,6 +226,8 @@ class TreeCanvas extends React.Component {
         children: []
       };
       nodeData.children.push(newNode);
+      newNodeIDs.add(newNode.id);
+      this.setState({ nodeIDs: newNodeIDs });
     }
     // non-leaf nodes should not have values
     if (targetCount > 0) {
